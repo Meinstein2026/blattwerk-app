@@ -1,7 +1,11 @@
 // Überträgt den aktuellen Stand (HEAD) ins öffentliche Repo — ohne alles, was in
-// .gitattributes als export-ignore steht. Legt dort EINEN Commit an, pusht nicht.
+// .gitattributes als export-ignore steht, legt dort EINEN Commit an und pusht ihn.
 //
-//   npm run veroeffentlichen -- <Pfad zum Klon des öffentlichen Repos>
+//   npm run veroeffentlichen                 # prüfen, committen, pushen
+//   npm run veroeffentlichen -- --ohne-push  # nur prüfen + lokal committen
+//
+// Zielordner: ../blattwerk-app-oeffentlich (Klon des öffentlichen Repos),
+// abweichend per BW_OEFFENTLICH=<pfad>.
 //
 // Bricht ab, wenn der Export noch interne Daten enthält (VERBOTEN unten).
 import { execSync } from "node:child_process";
@@ -9,8 +13,9 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync, cpSync, exist
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
-const ziel = process.argv[2];
-if (!ziel) throw new Error("Pfad zum öffentlichen Repo fehlt: npm run veroeffentlichen -- ../blattwerk-app");
+const ohnePush = process.argv.includes("--ohne-push");
+const ziel = resolve(process.env.BW_OEFFENTLICH || process.argv.slice(2).find((a) => !a.startsWith("--")) || "../blattwerk-app-oeffentlich");
+if (!existsSync(join(ziel, ".git"))) throw new Error(`Kein Git-Repo unter ${ziel} — öffentliches Repo dort klonen oder BW_OEFFENTLICH setzen.`);
 
 // Generische Muster (keine Firmendaten) bleiben hier — private IP-Bereiche
 // und Handynummern sind Formate, keine konkreten Betriebsgeheimnisse.
@@ -93,7 +98,7 @@ for (const name of readdirSync(ziel)) if (name !== ".git") rmSync(join(ziel, nam
 cpSync(tmp, ziel, { recursive: true });
 rmSync(tmp, { recursive: true, force: true });
 sh("git add -A", ziel);
-if (!sh("git status --porcelain", ziel)) { console.log("Keine Änderungen gegenüber dem öffentlichen Stand."); process.exit(0); }
+if (!sh("git status --porcelain", ziel)) { console.log("Keine Änderungen gegenüber dem öffentlichen Stand — nichts zu veröffentlichen."); process.exit(0); }
 // Neutrale Commit-Identität statt der globalen Git-Config des Rechners, der
 // den Export ausführt — sonst steht im öffentlichen Repo z. B. der echte
 // Name/die echte Mailadresse des Betreibers. Ueberschreibbar (z. B. für ein
@@ -108,4 +113,7 @@ for (const feld of identitaet) {
   const m = VERBOTEN.find((re) => re.test(feld));
   if (m) throw new Error(`Commit-Autor/-Committer im öffentlichen Repo trifft ein verbotenes Muster: "${feld}" (${m})`);
 }
-console.log(`Commit „Stand ${stand}" im öffentlichen Repo angelegt (Autor: ${autor} <${mail}>). Prüfen, dann dort: git push`);
+console.log(`Commit „Stand ${stand}" im öffentlichen Repo angelegt (Autor: ${autor} <${mail}>).`);
+if (ohnePush) { console.log(`Nicht gepusht (--ohne-push). Zum Veröffentlichen: git -C "${ziel}" push`); process.exit(0); }
+execSync("git push", { cwd: ziel, stdio: "inherit" });
+console.log("Veröffentlicht.");
