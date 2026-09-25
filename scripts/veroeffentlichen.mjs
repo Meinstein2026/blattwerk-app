@@ -93,6 +93,10 @@ if (funde.length) {
   process.exit(1);
 }
 
+// Erst den öffentlichen Stand holen — der GitHub-Knopf oder ein anderer
+// Rechner kann inzwischen veröffentlicht haben, sonst scheitert der Push.
+if (!ohnePush) execSync("git pull -q --ff-only", { cwd: ziel, stdio: "inherit" });
+
 // 3. Ziel ersetzen (außer .git) und committen
 for (const name of readdirSync(ziel)) if (name !== ".git") rmSync(join(ziel, name), { recursive: true, force: true });
 cpSync(tmp, ziel, { recursive: true });
