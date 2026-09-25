@@ -1,3 +1,4 @@
 # Was NICHT ins öffentliche Repo geht (git archive / npm run veroeffentlichen).
 # Das private Repo behält alles.
 CLAUDE.md                          export-ignore
+.github export-ignore
