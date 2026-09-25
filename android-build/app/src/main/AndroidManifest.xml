@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Beleg-Scanner: getUserMedia-Kamera in der WebView -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Chat-Tab (Element): Festnetz-Anrufe brauchen das Mikrofon in der WebView -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Selbst-Update über den internen Update-Host (wie Kalender-App).
+         Installiert wird nichts im Hintergrund — Android zeigt seinen Dialog. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Klingeldienst (Stufe 2 der Telefonie): Foreground-Service hängt am
+         Klingelstrom des eigenen Servers und klingelt bei Festnetz-Anrufen,
+         auch wenn die App geschlossen ist. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Ohne Ausnahme von der Akku-Optimierung kappt Doze die Verbindung und
+         das Klingeln kommt erst Minuten später an. Der Dialog kommt einmalig
+         aus der MainActivity. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.Splash"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                Links auf die App (z. B. „In der App freigeben" aus dem Matrix-Raum
+                „Blattwerk Belege") sollen hier landen statt im Browser — im Browser
+                fehlt der Authentik-Session-Cookie der WebView, es ginge ein zweiter
+                Login-Tanz los.
+
+                Bewusst OHNE android:autoVerify: dafür müsste
+                https://<primärer Host>/.well-known/assetlinks.json
+                ohne Authentik-Login erreichbar sein (NPM-Ausnahme + Signatur-
+                Fingerprint). So zeigt Android beim ersten Mal den „Öffnen mit"-
+                Dialog; einmal „Blattwerk" + „Immer" reicht.
+
+                Hosts kommen aus local.properties (BW_HOME_URL/BW_ALT_HOST,
+                siehe app/build.gradle) — nie aus dem Quelltext. Beide Namen,
+                weil Links aus Mails/Kalendereinträgen/alten Lesezeichen noch
+                den alten Namen tragen können und trotzdem in der App landen
+                sollen.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="${bwPrimaryHost}" />
+                <data android:scheme="https" android:host="${bwAltHost}" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- Klingeldienst: specialUse, weil keine der vordefinierten
+             Foreground-Kategorien „hängt an einem Server-Stream und klingelt
+             bei Anrufen" abdeckt (kein Play-Review nötig, wird sideloaded). -->
+        <service
+            android:name=".AnrufDienst"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Klingelsignal für Festnetz-Anrufe über den eigenen Server (ntfy-Abonnement)" />
+        </service>
+
+        <receiver
+            android:name=".StartEmpfaenger"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Für Kamera-Aufnahmen aus dem Datei-Dialog (EXTRA_OUTPUT) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="de.blattwerk.mobile.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

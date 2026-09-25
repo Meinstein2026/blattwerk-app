@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#123527" />
+    <meta name="description" content="Mobile Dolibarr-App für Android und iOS." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Blattwerk" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>Blattwerk</title>
+    <!-- Schriften nicht-blockierend und aus dem eigenen Haus (14.08.2026).
+         Von fonts.googleapis.com waren sie am Tablet die teuersten Dateien des
+         ganzen Starts (Stylesheet 404 ms + drei Schriftdateien je ~170 ms),
+         ohne Netz kamen sie gar nicht, und jedes Geraet meldete beim Start
+         seine IP an Google. Jetzt aus public/fonts/, damit im Vorab-Cache. -->
+    <link rel="preload" href="/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts/schriften.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="/fonts/schriften.css" /></noscript>
+    <!-- Critical style: sofortiger erster Paint (kein weißes Aufblitzen, kein FOIT) -->
+    <style>html,body{margin:0;background:#eef0ea}#root{min-height:100vh}body{font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#14211a}</style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

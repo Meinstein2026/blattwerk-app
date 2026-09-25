@@ -1,0 +1,90 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Release-Signatur: app/key.properties + app/blattwerk-mobile-release.jks (beide
+// gitignored, verschlüsseltes Backup im Vault unter „Blattwerk-App Release-Keystore").
+// Ohne diese Dateien baut `assembleRelease` NICHT still mit dem Debug-Key weiter —
+// ein debug-signiertes Release ließe sich später nicht mehr in-place aktualisieren.
+def keystorePropsFile = rootProject.file('app/key.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+// Echte Hosts kommen aus local.properties (gitignored, siehe
+// local.properties.example) oder der Umgebung — nie aus dem Quelltext.
+// BW_HOME_DOMAINS ist eine Kommaliste (erste = primäre, für den App-Link-
+// Intent-Filter; weitere sind alte Namen, die noch in der WebView bleiben
+// sollen).
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+def bwProp = { name, fallback -> localProps.getProperty(name) ?: System.getenv(name) ?: fallback }
+def bwHomeUrl = bwProp('BW_HOME_URL', 'https://app.example.org')
+def bwHomeDomains = bwProp('BW_HOME_DOMAINS', 'example.org').split(',').collect { it.trim() }.findAll { it }.join(',')
+def bwAltHost = bwProp('BW_ALT_HOST', 'mobile.example.org')
+// Ohne local.properties baut die APK sonst still gegen example.org.
+if (!localPropsFile.exists() && !System.getenv('BW_HOME_URL') && System.getenv('BW_PLATZHALTER_OK') != '1') {
+    throw new GradleException('android-build/local.properties fehlt (Vorlage: local.properties.example, echte Werte im Betriebs-Repo) — oder BW_PLATZHALTER_OK=1 setzen.')
+}
+def bwPrimaryHost = (bwHomeUrl =~ /^https?:\/\/([^\/]+)/)[0][1]
+
+android {
+    namespace 'de.blattwerk.mobile'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "de.blattwerk.mobile"
+        minSdk 26
+        targetSdk 34
+        versionCode 9
+        versionName "1.8"
+        buildConfigField "String", "HOME_URL", "\"${bwHomeUrl}\""
+        buildConfigField "String", "HOME_DOMAINS", "\"${bwHomeDomains}\""
+        manifestPlaceholders = [bwPrimaryHost: bwPrimaryHost, bwAltHost: bwAltHost]
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        release {
+            if (keystoreProps['storeFile']) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystoreProps['storeFile']) {
+                signingConfig signingConfigs.release
+            } else {
+                // Lieber hart scheitern als eine APK ausliefern, die niemand updaten kann.
+                throw new GradleException(
+                        "app/key.properties fehlt — Release-Keystore aus dem Vault wiederherstellen " +
+                        "(Knowledge/homelab-secrets.md → 'Blattwerk-App Release-Keystore').")
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+    // Startbildschirm wie in der Element-X-Fork (Theme.SplashScreen,
+    // setKeepOnScreenCondition + eigene Ausblend-Animation)
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+}

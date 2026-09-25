@@ -1,0 +1,46 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Abhängigkeiten zuerst (besseres Layer-Caching)
+COPY package*.json ./
+RUN npm install --no-audit --no-fund
+
+# Restliche Quellen + Build
+COPY . .
+
+# Build-time VITE_*-Vars: Coolify uebergibt sie als Docker-Build-Args (Haken
+# "Build Variable" je Var in der Coolify-UI) — ohne ARG+ENV hier sieht `npm
+# run build` (Vite) nur echte Laufzeit-ENV-Variablen, keine Build-Args.
+ARG VITE_DOLIBARR_URL_DEFAULT
+ARG VITE_DOLIBARR_ALT_HOSTS
+ARG VITE_CHAT_UPSTREAM
+ARG VITE_CHAT_HOMESERVER
+ARG VITE_CHAT_SPACE
+ARG VITE_CHAT_WHATSAPP_SPACE
+ARG VITE_TELEFON_RAUM
+ARG VITE_LKJWT_URL
+ARG VITE_UPDATE_BASE
+ARG VITE_TUTORIAL_CODE
+ARG VITE_NC_ALTER_KALENDER_NAME
+ARG BW_PLATZHALTER_OK
+ENV VITE_DOLIBARR_URL_DEFAULT=$VITE_DOLIBARR_URL_DEFAULT \
+    VITE_DOLIBARR_ALT_HOSTS=$VITE_DOLIBARR_ALT_HOSTS \
+    VITE_CHAT_UPSTREAM=$VITE_CHAT_UPSTREAM \
+    VITE_CHAT_HOMESERVER=$VITE_CHAT_HOMESERVER \
+    VITE_CHAT_SPACE=$VITE_CHAT_SPACE \
+    VITE_CHAT_WHATSAPP_SPACE=$VITE_CHAT_WHATSAPP_SPACE \
+    VITE_TELEFON_RAUM=$VITE_TELEFON_RAUM \
+    VITE_LKJWT_URL=$VITE_LKJWT_URL \
+    VITE_UPDATE_BASE=$VITE_UPDATE_BASE \
+    VITE_TUTORIAL_CODE=$VITE_TUTORIAL_CODE \
+    VITE_NC_ALTER_KALENDER_NAME=$VITE_NC_ALTER_KALENDER_NAME
+
+# BW_PLATZHALTER_OK nur fuer diesen Build-Schritt, NICHT als ENV im Image —
+# sonst schaltete ein gesetzter Build-Arg auch die Start-Pruefung im Server ab.
+RUN BW_PLATZHALTER_OK=$BW_PLATZHALTER_OK npm run build
+
+ENV PORT=80
+EXPOSE 80
+
+CMD ["node", "server.mjs"]

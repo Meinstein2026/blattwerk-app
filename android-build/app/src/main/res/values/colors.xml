@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bw_green">#43a047</color>
+    <color name="bw_green_dark">#2e7d32</color>
+    <color name="white">#ffffff</color>
+    <!-- Grund des Adaptive-Icons = Waldgrün des Corporate Designs. Der Baum im
+         Vordergrund ist weiß (blattwerk-bildmarke-weiss), auf Weiß wäre er
+         unsichtbar. Gleiche Fläche wie das PWA-/Authentik-Icon. -->
+    <color name="ic_launcher_background">#123527</color>
+    <!-- Startbildschirm: dieselben Flächenfarben wie die Web-App (CSS-Variable bg), damit
+         der Übergang vom Splash in die WebView nicht blitzt. Hell/Dunkel wie in
+         der Element-X-Fork über values-night getrennt. -->
+    <color name="splash_bg">#f1f5f9</color>
+    <color name="splash_fg">#2e7d32</color>
+</resources>

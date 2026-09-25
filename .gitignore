@@ -1,0 +1,16 @@
+# Abhängigkeiten
+node_modules
+
+# Build-Ausgabe (wird von Coolify/Vite erzeugt)
+dist/
+
+# Logs & System
+*.log
+.DS_Store
+.env
+.env.local
+.env.production
+android-build/local.properties
+
+# Subagent-Driven-Development Scratch
+.superpowers/

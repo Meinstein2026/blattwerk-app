@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+  Isolierte Smoke-Testseite fuer die Baumkataster-Filterleiste (BkFilterLeiste)
+  und die Karte (BaumKarte.jsx), 18.09.2026. Kein Dolibarr-Login, keine echten
+  Zugangsdaten, kein Nextcloud-Zugriff, kein Produktivbuild-Einstiegspunkt
+  (Vite baut nur index.html; diese Datei wird von "npm run build" nicht
+  eingesammelt). Vorbild: scripts/gbu-smoke.html/.jsx.
+  Start: npx vite --port 5199, dann http://localhost:5199/scripts/bk-smoke.html
+-->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baumkataster-Filter/Karte — Smoke-Test (nicht produktiv)</title>
+    <style>
+      html,body{margin:0;background:#0f1117;color:#e8eaf0;font-family:system-ui,sans-serif}
+      #root{min-height:60vh;padding:16px}
+      /* Nur das Nötigste an App-Stil nachgebaut (dolibarr-app.jsx rendert sein
+         eigenes globales <style> nur innerhalb von App, das hier nicht steht):
+         genug, damit Chips als Chips und nicht als nackte <button> erscheinen. */
+      button{font:inherit}
+      .gbu-chips{display:flex;flex-wrap:wrap;gap:8px}
+      .gbu-chip{padding:9px 13px;border-radius:999px;border:1.5px solid #2e3147;background:#1a1d27;color:#e8eaf0;font-size:13px;font-weight:700;cursor:pointer}
+      .gbu-chip-active{background:#43a047;border-color:#43a047;color:#fff}
+      .field-group{margin-bottom:8px}
+      .field-group label{display:block;font-size:12px;color:#9aa1b5;margin-bottom:2px}
+      .action-row{display:flex;gap:8px;align-items:center}
+      .btn{border-radius:8px;border:1px solid #2e3147;background:#1a1d27;color:#e8eaf0;padding:8px 12px;cursor:pointer}
+      .btn-primary{background:#43a047;border-color:#43a047;color:#fff}
+      .bk-karte{background:#232637}
+      select,input{font:inherit;background:#1a1d27;color:#e8eaf0;border:1px solid #2e3147;border-radius:6px;padding:6px}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="log" style="position:fixed;bottom:0;left:0;right:0;max-height:32vh;overflow:auto;background:#000;color:#7CFC7C;font:11px/1.4 monospace;padding:6px 8px;border-top:2px solid #333"></div>
+    <script type="module" src="./bk-smoke.jsx"></script>
+  </body>
+</html>

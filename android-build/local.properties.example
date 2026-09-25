@@ -1,0 +1,11 @@
+# Kopieren nach local.properties (gitignored) und mit echten Werten füllen.
+# sdk.dir setzt normalerweise Android Studio automatisch.
+
+# Primärer App-Host (App-Link-Intent-Filter + WebView-Start-URL + Update-API).
+BW_HOME_URL=https://app.example.org
+# Kommaliste eigener Domains, die im WebView bleiben (nicht an den
+# System-Browser gehen) — erste = aus BW_HOME_URL abgeleitet reicht meist,
+# weitere nur bei einem Domain-Umzug mit noch erreichbarer alter Domain.
+BW_HOME_DOMAINS=example.org
+# Zweiter Host im App-Link-Intent-Filter (z. B. alte/interne Adresse).
+BW_ALT_HOST=mobile.example.org
